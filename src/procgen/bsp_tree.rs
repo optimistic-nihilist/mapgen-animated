@@ -1,7 +1,10 @@
-use crate::{fundamentals::*, maptools::*, utils::*};
+use crate::{fundamentals::*, maptools::*, render_map, utils::*, DrawTextureParams};
+use async_recursion::async_recursion;
+use macroquad::prelude::*;
+use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
-struct BSPNode {
+pub struct BSPNode {
     x: i32,
     y: i32,
     w: i32,
@@ -88,13 +91,19 @@ impl BSPNode {
     }
 }
 
-fn carve_leafs(curr: &mut BSPNode, map: &mut Map) {
+#[async_recursion]
+pub async fn carve_leafs(
+    curr: &mut BSPNode,
+    map: &mut Map,
+    tiles: &HashMap<TileType, DrawTextureParams>,
+    texture: Texture2D,
+) {
     if curr.left_child.is_some() || curr.right_child.is_some() {
         if curr.left_child.is_some() {
-            carve_leafs(curr.left_child.as_mut().unwrap(), map);
+            carve_leafs(curr.left_child.as_mut().unwrap(), map, tiles, texture).await
         }
         if curr.right_child.is_some() {
-            carve_leafs(curr.right_child.as_mut().unwrap(), map);
+            carve_leafs(curr.right_child.as_mut().unwrap(), map, tiles, texture).await
         }
         if let (Some(l), Some(r)) = (curr.left_child.as_mut(), curr.right_child.as_mut()) {
             let lroom = get_room(l).unwrap();
@@ -110,6 +119,10 @@ fn carve_leafs(curr: &mut BSPNode, map: &mut Map) {
                 carve_vert_tunnel(map, ly, ry, lx);
                 carve_horz_tunnel(map, lx, rx, ry);
             }
+
+            render_map(&tiles, texture, &map);
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            next_frame().await
         }
     } else {
         if curr.room.is_none() {
@@ -120,6 +133,10 @@ fn carve_leafs(curr: &mut BSPNode, map: &mut Map) {
 
             curr.room = Some(Room::new(x, y, w, h));
             curr.room.unwrap().carve(map);
+
+            render_map(&tiles, texture, &map);
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            next_frame().await
         }
     }
 }
@@ -148,11 +165,10 @@ fn split_until_fail(curr: &mut BSPNode) {
 pub struct BSPTreeGenerator {}
 
 impl BSPTreeGenerator {
-    pub fn generate_map() -> Map {
-        let mut map = new_map(TileType::Wall);
+    pub fn generate_bsp() -> BSPNode {
         let mut root = BSPNode::new(1, 1, COLS, ROWS, None, None, None);
         split_until_fail(&mut root);
-        carve_leafs(&mut root, &mut map);
-        map
+        // carve_leafs(&mut root, &mut map);
+        root
     }
 }

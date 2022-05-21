@@ -5,7 +5,7 @@ mod utils;
 use fundamentals::*;
 use macroquad::prelude::*;
 use maptools::{new_map, randomize_map, Map, Room, TileType};
-use procgen::bsp_tree::BSPTreeGenerator;
+use procgen::bsp_tree::{carve_leafs, BSPTreeGenerator};
 use procgen::cellular_automata::CellularAutomataGenerator;
 use procgen::maze_with_rooms::MazeGenerator;
 use procgen::room_placement::RoomPlacementGenerator;
@@ -172,7 +172,10 @@ async fn main() {
             }
         }
         if is_key_pressed(KeyCode::Key2) {
-            map = BSPTreeGenerator::generate_map();
+            map = new_map(TileType::Wall);
+            rooms.clear();
+            let mut root = BSPTreeGenerator::generate_bsp();
+            carve_leafs(&mut root, &mut map, &tiles, texture).await
         }
         if is_key_pressed(KeyCode::Key3) {
             map = RandomWalkGenerator::generate_map();
