@@ -11,35 +11,32 @@ impl TunnelingGenerator {
         let y = randr(1..ROWS - h);
 
         let curr_room = Room::new(x, y, w, h);
-        let mut overlaps = false;
 
         for room in r.clone() {
             if curr_room.overlaps(room) {
-                overlaps = true;
                 return false;
             }
         }
 
-        if !overlaps {
-            curr_room.carve(m);
+        curr_room.carve(m);
 
-            let (curr_x, curr_y) = curr_room.center();
+        let (curr_x, curr_y) = curr_room.center();
 
-            if !r.is_empty() {
-                let prev_room = r[r.len() - 1];
-                let (prev_x, prev_y) = prev_room.center();
+        if !r.is_empty() {
+            let prev_room = r[r.len() - 1];
+            let (prev_x, prev_y) = prev_room.center();
 
-                if randr(0..1) == 1 {
-                    carve_horz_tunnel(m, curr_x, prev_x, curr_y);
-                    carve_vert_tunnel(m, curr_y, prev_y, prev_x);
-                } else {
-                    carve_vert_tunnel(m, curr_y, prev_y, curr_x);
-                    carve_horz_tunnel(m, curr_x, prev_x, prev_y);
-                }
+            if randr(0..1) == 1 {
+                carve_horz_tunnel(m, curr_x, prev_x, curr_y);
+                carve_vert_tunnel(m, curr_y, prev_y, prev_x);
+            } else {
+                carve_vert_tunnel(m, curr_y, prev_y, curr_x);
+                carve_horz_tunnel(m, curr_x, prev_x, prev_y);
             }
-
-            r.push(curr_room);
         }
+
+        r.push(curr_room);
+
         true
     }
 }

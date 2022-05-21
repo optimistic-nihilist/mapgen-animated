@@ -6,7 +6,7 @@ use fundamentals::*;
 use macroquad::prelude::*;
 use maptools::{new_map, randomize_map, Map, Room, TileType};
 use procgen::bsp_tree::{carve_leafs, BSPTreeGenerator};
-use procgen::cellular_automata::CellularAutomataGenerator;
+use procgen::cellular_automata::{evolve_map, randomize_map_seal_edges};
 use procgen::maze_with_rooms::MazeGenerator;
 use procgen::room_placement::RoomPlacementGenerator;
 use procgen::rwalk::RandomWalkGenerator;
@@ -181,7 +181,11 @@ async fn main() {
             RandomWalkGenerator::generate_map(&mut map, &tiles, texture).await
         }
         if is_key_pressed(KeyCode::Key4) {
-            map = CellularAutomataGenerator::generate_map();
+            map = new_map(TileType::Wall);
+            randomize_map_seal_edges(&mut map);
+            for _ in 0..10 {
+                evolve_map(&mut map, &tiles, texture).await
+            }
         }
         if is_key_pressed(KeyCode::Key5) {
             map = RoomPlacementGenerator::generate_map();
