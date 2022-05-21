@@ -1,4 +1,6 @@
-use crate::{fundamentals::*, maptools::*, utils::*};
+use crate::{fundamentals::*, maptools::*, render_map, utils::*, DrawTextureParams};
+use macroquad::prelude::{next_frame, Texture2D};
+use std::collections::HashMap;
 
 const SQUARE_ROOM_MIN_SIZE: i32 = 4;
 const SQUARE_ROOM_MAX_SIZE: i32 = 8;
@@ -467,35 +469,32 @@ fn try_place_room(free_connection_points: &mut Vec<ConnectionPoint>, map: &mut M
 pub struct RoomPlacementGenerator {}
 
 impl RoomPlacementGenerator {
-    pub fn generate_map() -> Map {
-        let mut map = new_map(TileType::Wall);
-
+    pub async fn generate_map(
+        map: &mut Map,
+        tiles: &HashMap<TileType, DrawTextureParams>,
+        texture: Texture2D,
+    ) {
         // generate & place starting room in center
         let mut r1 = generate_random_room();
         let starting_room_x = COLS / 2 - r1.rect.w / 2;
         let starting_room_y = ROWS / 2 - r1.rect.h / 2;
-        place_room(&mut r1, &mut map, starting_room_x, starting_room_y);
+        place_room(&mut r1, map, starting_room_x, starting_room_y);
 
+        render_map(&tiles, texture, &map);
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        next_frame().await;
         // add starting room's connection points to vec containg all free connection points
         let mut free_connection_points = find_connection_points(&r1);
 
         let max_attempts = 100;
         let mut rooms_placed = 1;
         for _ in 0..max_attempts {
-            if try_place_room(&mut free_connection_points, &mut map) {
+            if try_place_room(&mut free_connection_points, map) {
                 rooms_placed = rooms_placed + 1;
+                render_map(&tiles, texture, &map);
+                std::thread::sleep(std::time::Duration::from_millis(500));
+                next_frame().await;
             }
         }
-
-        // println!(
-        //     "Placed {} rooms out of {} attempts.",
-        //     rooms_placed, max_attempts
-        // );
-
-        // for c in free_connection_points {
-        //     map[get_xy_idx(c.tile.x, c.tile.y) as usize] = TileType::Hero as i32;
-        // }
-
-        map
     }
 }

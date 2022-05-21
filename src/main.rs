@@ -188,7 +188,8 @@ async fn main() {
             }
         }
         if is_key_pressed(KeyCode::Key5) {
-            map = RoomPlacementGenerator::generate_map();
+            map = new_map(TileType::Wall);
+            RoomPlacementGenerator::generate_map(&mut map, &tiles, texture).await
         }
         if is_key_pressed(KeyCode::Key6) {
             map = MazeGenerator::generate_map();
