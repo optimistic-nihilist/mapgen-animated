@@ -481,7 +481,8 @@ impl RoomPlacementGenerator {
         place_room(&mut r1, map, starting_room_x, starting_room_y);
 
         render_map(&tiles, texture, &map);
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        let start = macroquad::time::get_time();
+        while macroquad::time::get_time() - start < 0.3 {}
         next_frame().await;
         // add starting room's connection points to vec containg all free connection points
         let mut free_connection_points = find_connection_points(&r1);
@@ -492,7 +493,8 @@ impl RoomPlacementGenerator {
             if try_place_room(&mut free_connection_points, map) {
                 rooms_placed = rooms_placed + 1;
                 render_map(&tiles, texture, &map);
-                std::thread::sleep(std::time::Duration::from_millis(500));
+                let start = macroquad::time::get_time();
+                while macroquad::time::get_time() - start < 0.3 {}
                 next_frame().await;
             }
         }

@@ -100,7 +100,6 @@ impl RandomWalkGenerator {
                     RED,
                 );
             }
-            std::thread::sleep(std::time::Duration::from_millis(10));
             next_frame().await
         }
     }

@@ -187,7 +187,8 @@ async fn place_rooms(
             curr_room.y2 = curr_room.y2 + 3;
             rooms.push(curr_room);
             render_map(&tiles, texture, m);
-            std::thread::sleep(std::time::Duration::from_millis(500));
+            let start = macroquad::time::get_time();
+            while macroquad::time::get_time() - start < 0.3 {}
             next_frame().await
         }
     }
@@ -333,7 +334,6 @@ impl MazeGenerator {
                 TILESIZE as f32,
                 RED,
             );
-            // std::thread::sleep(std::time::Duration::from_millis(1));
             next_frame().await
         }
 
@@ -349,14 +349,16 @@ impl MazeGenerator {
         for _ in 0..5 {
             trim_dead_ends(map);
             render_map(&tiles, texture, map);
-            std::thread::sleep(std::time::Duration::from_millis(500));
+            let start = macroquad::time::get_time();
+            while macroquad::time::get_time() - start < 0.3 {}
             next_frame().await
         }
 
         // connect rooms with passages
         connect_rooms(&mut rooms, map);
         render_map(&tiles, texture, map);
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        let start = macroquad::time::get_time();
+        while macroquad::time::get_time() - start < 0.3 {}
         next_frame().await
     }
 }

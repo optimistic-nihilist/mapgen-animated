@@ -121,7 +121,8 @@ pub async fn carve_leafs(
             }
 
             render_map(&tiles, texture, &map);
-            std::thread::sleep(std::time::Duration::from_millis(250));
+            let start = macroquad::time::get_time();
+            while macroquad::time::get_time() - start < 0.3 {}
             next_frame().await
         }
     } else {
@@ -135,7 +136,8 @@ pub async fn carve_leafs(
             curr.room.unwrap().carve(map);
 
             render_map(&tiles, texture, &map);
-            std::thread::sleep(std::time::Duration::from_millis(250));
+            let start = macroquad::time::get_time();
+            while macroquad::time::get_time() - start < 0.3 {}
             next_frame().await
         }
     }

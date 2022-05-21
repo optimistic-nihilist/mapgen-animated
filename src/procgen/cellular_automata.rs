@@ -40,7 +40,8 @@ pub async fn evolve_map(
             }
         }
     }
-    std::thread::sleep(std::time::Duration::from_millis(500));
+    let start = macroquad::time::get_time();
+    while macroquad::time::get_time() - start < 0.3 {}
     next_frame().await
 }
 

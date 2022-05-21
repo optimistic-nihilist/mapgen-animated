@@ -167,7 +167,8 @@ async fn main() {
                     placed_room = algo.generate_step(&mut map, &mut rooms);
                 }
                 render_map(&tiles, texture, &map);
-                std::thread::sleep(std::time::Duration::from_millis(500));
+                let start = macroquad::time::get_time();
+                while macroquad::time::get_time() - start < 0.3 {}
                 next_frame().await
             }
         }
