@@ -173,12 +173,12 @@ async fn main() {
         }
         if is_key_pressed(KeyCode::Key2) {
             map = new_map(TileType::Wall);
-            rooms.clear();
             let mut root = BSPTreeGenerator::generate_bsp();
             carve_leafs(&mut root, &mut map, &tiles, texture).await
         }
         if is_key_pressed(KeyCode::Key3) {
-            map = RandomWalkGenerator::generate_map();
+            map = new_map(TileType::Wall);
+            RandomWalkGenerator::generate_map(&mut map, &tiles, texture).await
         }
         if is_key_pressed(KeyCode::Key4) {
             map = CellularAutomataGenerator::generate_map();

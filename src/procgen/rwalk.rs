@@ -1,4 +1,6 @@
-use crate::{fundamentals::*, maptools::*, utils::*};
+use crate::{fundamentals::*, maptools::*, render_map, utils::*, DrawTextureParams};
+use macroquad::prelude::*;
+use std::collections::HashMap;
 
 const MAX_WALKERS: i32 = 10;
 const MAX_STEPS: i32 = 200;
@@ -54,12 +56,15 @@ fn spawn_walker<'a>(x: i32, y: i32, vec: &'a mut Vec<Walker>, map: &mut Map) {
 
 pub struct RandomWalkGenerator {}
 impl RandomWalkGenerator {
-    pub fn generate_map() -> Map {
-        let mut map = new_map(TileType::Wall);
+    pub async fn generate_map(
+        map: &mut Map,
+        tiles: &HashMap<TileType, DrawTextureParams>,
+        texture: Texture2D,
+    ) {
         let mut walkers: Vec<Walker> = Vec::new();
         let mut num_walkers = 0;
 
-        spawn_walker(COLS / 2, ROWS / 2, &mut walkers, &mut map);
+        spawn_walker(COLS / 2, ROWS / 2, &mut walkers, map);
         num_walkers += 1;
 
         // until we have active walkers
@@ -69,10 +74,10 @@ impl RandomWalkGenerator {
 
             // each walker takes step
             for w in &mut walkers {
-                w.step(&mut map);
+                w.step(map);
                 // after each step, chance to spawn new walker at walker's current location (if we can)
-                if (num_walkers < MAX_WALKERS) & (randr(0..100) > 80) {
-                    spawn_walker(w.x, w.y, &mut walkers_spawned, &mut map);
+                if (num_walkers < MAX_WALKERS) & (randr(0..100) > 96) {
+                    spawn_walker(w.x, w.y, &mut walkers_spawned, map);
                     num_walkers += 1;
                 }
             }
@@ -84,8 +89,19 @@ impl RandomWalkGenerator {
 
             // keep only walkers that still have steps left in main walkers vector
             walkers.retain(|x| x.steps > 0);
-        }
 
-        map
+            render_map(&tiles, texture, &map);
+            for w in &walkers {
+                draw_rectangle(
+                    w.x as f32 * TILESIZE as f32,
+                    w.y as f32 * TILESIZE as f32,
+                    TILESIZE as f32,
+                    TILESIZE as f32,
+                    RED,
+                );
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+            next_frame().await
+        }
     }
 }
