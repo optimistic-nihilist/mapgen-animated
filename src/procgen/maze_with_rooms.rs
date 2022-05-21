@@ -1,4 +1,6 @@
-use crate::{fundamentals::*, maptools::*, utils::*};
+use crate::{fundamentals::*, maptools::*, render_map, utils::*, DrawTextureParams};
+use macroquad::prelude::*;
+use std::collections::HashMap;
 
 #[derive(Copy, Clone, Debug)]
 struct Cell {
@@ -150,10 +152,14 @@ fn trim_dead_ends(m: &mut Map) {
     }
 }
 
-fn place_rooms(m: &mut Map) -> Vec<Room> {
+async fn place_rooms(
+    rooms: &mut Vec<Room>,
+    m: &mut Map,
+    tiles: &HashMap<TileType, DrawTextureParams>,
+    texture: Texture2D,
+) {
     const ROOM_SIZE_MIN: i32 = 6;
     const ROOMS_SIZE_MAX: i32 = 16;
-    let mut rooms: Vec<Room> = vec![];
 
     for _ in 0..20 {
         let w: i32 = randr(ROOM_SIZE_MIN..ROOMS_SIZE_MAX);
@@ -165,8 +171,8 @@ fn place_rooms(m: &mut Map) -> Vec<Room> {
 
         let mut overlaps = false;
 
-        for room in &rooms {
-            if curr_room.overlaps(*room) {
+        for room in rooms.clone() {
+            if curr_room.overlaps(room) {
                 overlaps = true;
                 break;
             }
@@ -180,10 +186,11 @@ fn place_rooms(m: &mut Map) -> Vec<Room> {
             curr_room.x2 = curr_room.x2 + 3;
             curr_room.y2 = curr_room.y2 + 3;
             rooms.push(curr_room);
+            render_map(&tiles, texture, m);
+            std::thread::sleep(std::time::Duration::from_millis(500));
+            next_frame().await
         }
     }
-
-    rooms
 }
 
 fn connect_rooms(rooms: &mut Vec<Room>, m: &mut Map) {
@@ -295,12 +302,16 @@ struct Pos {
 
 pub struct MazeGenerator {}
 impl MazeGenerator {
-    pub fn generate_map() -> Map {
-        let mut map = new_map(TileType::Wall);
+    pub async fn generate_map(
+        map: &mut Map,
+        tiles: &HashMap<TileType, DrawTextureParams>,
+        texture: Texture2D,
+    ) {
         let mut visited = new_map(TileType::Wall);
         let mut visited_positions: Vec<Pos> = Vec::new();
 
-        let mut rooms = place_rooms(&mut map);
+        let mut rooms: Vec<Room> = vec![];
+        place_rooms(&mut rooms, map, tiles, texture).await;
 
         // pick a random wall location
         let mut startx = COLS / 2;
@@ -313,7 +324,17 @@ impl MazeGenerator {
         let mut c = Cell::new(startx, starty, &mut visited, &mut visited_positions);
 
         while !visited_positions.is_empty() {
-            c.step(&mut map, &mut visited, &mut visited_positions);
+            c.step(map, &mut visited, &mut visited_positions);
+            render_map(&tiles, texture, map);
+            draw_rectangle(
+                c.x as f32 * TILESIZE as f32,
+                c.y as f32 * TILESIZE as f32,
+                TILESIZE as f32,
+                TILESIZE as f32,
+                RED,
+            );
+            // std::thread::sleep(std::time::Duration::from_millis(1));
+            next_frame().await
         }
 
         for y in 0..ROWS {
@@ -326,12 +347,16 @@ impl MazeGenerator {
 
         // make maze passages sparser by trimming some dead ends
         for _ in 0..5 {
-            trim_dead_ends(&mut map);
+            trim_dead_ends(map);
+            render_map(&tiles, texture, map);
+            std::thread::sleep(std::time::Duration::from_millis(500));
+            next_frame().await
         }
 
         // connect rooms with passages
-        connect_rooms(&mut rooms, &mut map);
-
-        map
+        connect_rooms(&mut rooms, map);
+        render_map(&tiles, texture, map);
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        next_frame().await
     }
 }
