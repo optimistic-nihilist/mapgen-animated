@@ -1,7 +1,8 @@
-# mapgen
-A small collection of procedural dungeon generation algorithms.  
-Built with Rust & [macroquad](https://github.com/not-fl3/macroquad).  
-WebAssembly build deployed [here](https://optimistic-nihilist.github.io/mapgen).
+# mapgen-animated
+
+[mapgen](https://github.com/optimistic-nihilist/mapgen), but the generation steps are now animated.  
+Had to create this as a new repo instead of a branch in the original, so that I can deploy it as a separate site using github pages.  
+WebAssembly build deployed [here](https://optimistic-nihilist.github.io/mapgen-animated/).
 
 ### Run
 Clone the repository, then `cargo run --release`.
